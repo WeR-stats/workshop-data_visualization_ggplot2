@@ -1,1 +1,1 @@
-# workshop-data_visualization_ggplot2
+# Data Visualization with *ggplot2*
