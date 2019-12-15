@@ -1,1 +1,1 @@
-# Data Visualization with *ggplot2*
+# Data Visualization with the *tidyverse*: *ggplot2*
