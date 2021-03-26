@@ -1,0 +1,660 @@
+---
+title: "💻 <i>R</i> Workshop 💻"
+subtitle: "Data Visualization with <i>ggplot2</i>"
+author: "Luca Valnegri"
+output:
+  xaringan::moon_reader:
+    css: ["default", "metropolis", "metropolis-fonts", "https://datamaps.uk/helpers/xaringan/xari.css"]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+layout: true
+<div class="wer-header"> <img class="logo" src="https://datamaps.uk/helpers/xaringan/logo_white.png"/> </div>
+<div class="wer-footer"> <span> &copy;2019 WeR meetup <br> https://github.com/WeR-stats/ </span> </div>
+
+```{r setup, echo=FALSE, results='hide', message=FALSE, warning=FALSE}
+pkgs <- c('dplyr', 'ggplot2', 'knitr', 'nycflights13', 'readr', 'readxl', 'tidyr')
+invisible(lapply(pkgs, require, char = TRUE))
+geo_path <- 'https://datamaps.uk/geography/'
+data_path <- 'https://datamaps.uk/datasets/'
+bnd_path <- 'https://datamaps.uk/boundaries/uk/rds/'
+```
+
+---
+# *R* Recap
+
+  - Data Types 
+
+--
+
+  - Data Structures
+
+--
+
+  - Indexing and Subsetting
+
+--
+
+  - Vectorization
+
+--
+
+  - Recycling
+  
+
+---
+# *dplyr* Recap
+
+--
+
+ - pipe operator
+ 
+--
+
+ - tidydata
+ 
+--
+
+ - select, add, update, and rename columns
+ 
+--
+
+ - filter and reorder rows
+ 
+--
+
+ - Joins: mutating vs filetring joins
+
+
+
+
+# Why Visualize Data
+
+--
+
+ - 
+ 
+--
+
+ - 
+ 
+--
+
+ - 
+ 
+--
+
+ - 
+ 
+--
+
+ -
+
+
+
+
+# Why *ggplot2*
+
+ - Consistent underlying *Grammar of Graphics* ([Wilkinson](https://www.springer.com/gb/book/9781475731002)) 
+
+--
+
+   You can uniquely describe any plot as a combination of the following seven parameters:
+   
+    ```
+    ggplot(data = <DATA>) + 
+      <GEOM_FUNCTION>(
+         mapping = aes(<MAPPINGS>),
+         stat = <STAT>, 
+         position = <POSITION>
+      ) +
+      <COORDINATE_FUNCTION> +
+      <FACET_FUNCTION>
+    ```
+--
+
+    But you don't need to specify all of them all the times
+
+---
+# Why *ggplot2*
+
+ - Plot specification at a high level of abstraction 
+ 
+--
+
+ - Very flexible 
+ 
+--
+
+ - Nice rendering, with a fairly complete *Theme* system for polishing plot appearance 
+ 
+--
+
+ - Automatic legends, colors, ...
+
+--
+
+ - Easy saving option
+
+---
+# Why *ggplot2*
+
+
+ - Active maintenance and development, meaning bugs get fixed and progress all the time 
+ 
+--
+
+ - Lots of users, active mailing list, much help on [Stack Overflow](https://stackoverflow.com/questions/tagged/ggplot2)
+
+--
+
+ - Lots of extensions (see the [gallery](http://www.ggplot2-exts.org/gallery/))
+
+
+---
+# Why NOT *ggplot2*
+
+ Things you cannot do with *ggplot2* 
+ 
+ 
+--
+
+ - 3-dimensional graphics 
+ 
+ 
+--
+
+ - Graph-theory type graphs
+
+
+---
+# *ggplot2* vs *R core*
+
+ - more verbose for simple graphs
+ 
+--
+
+ - less verbose for complex charts
+ 
+--
+
+ - unflexible over input data structure
+ 
+--
+
+ - uses a different system to identify and add plot elements
+ 
+ 
+---
+# Layers
+
+ - Plots in *ggplot2* are built using *layers* that are then *added* together
+
+--
+
+  Yes, using the *plus* `+` sign
+  
+--
+
+ - you can store a plot in an object, and then build on it over and over again
+  
+--
+ 
+ - every layer can have its own data. Once you include data in a layer, the same data cascade for subsequent layers 
+ 
+---
+# Layers
+
+ - **data** in the form of a *tidy* dataframe(s)
+
+--
+
+ - **aesthetics** `aes` set a mapping between data (columns) and visual elements of the graph
+
+--
+
+   - *characters* should be converted to *factors* to be understood in `aes`
+
+--
+
+   - visuals that must remain fixed are set outside the `aes` call
+
+
+---
+# Layers
+
+ - **geometries** `geom` defines the type of geometric object(s) to use to represent the data
+ 
+--
+
+   - every plot *must* have at least one geometry. There is no upper limit though
+
+--
+
+ - **position** describes where visual characteristic is converted to display values
+
+--
+
+ - **facets** creates separate graphs for subsets of data 
+
+
+---
+# Layers
+
+ - **statistics** `stats` describe statistical transformations that map input values into the summary that needs to be plotted
+ 
+--
+
+   - not every plot requires transformation of the input values (scatterplots)
+
+--
+   
+   - those who requires have a default function, can be changed
+--
+
+ - **coordinates** describes the 2D space that data is projected onto 
+
+
+---
+# AESthetics
+
+ - `x` horizontal axis
+ 
+ - `y` vertical axis
+
+--
+
+ - `colour` outline (see [colour-names.png]() in folder)
+
+ - `fill` interior
+
+--
+
+ - `shape` for points (see [symbols-points.png]() in folder)
+
+--
+
+ - `size` numeric double non negative
+
+--
+
+ - `alpha` transparency, numeric double between 0 and 1
+
+--
+
+ - `linetype` (see [linetypes.png]() in folder)
+
+
+---
+# Geometries: Barplot
+
+ - creates a layer with bars representing different statistical properties
+
+ - `geom_bar()`
+
+ - categorical variable
+ 
+ - needs *x* (*y* is built internally by *stat*)
+
+ - optional *aes*: colour, fill, alpha, size, linetype
+
+ - `position` *stack*, *dodge* 
+
+---
+# Geometries: Barplot
+
+ - creates a layer with bars representing different statistical properties
+
+ - `geom_col()` it's equal to `geom_bar(stat = "identity")`
+
+ - categorical variable
+ 
+ - needs *x*, *y*
+
+ - optional *aes*: colour, fill, alpha, size, linetype
+
+ - `position` *stack*, *dodge* 
+
+
+---
+# Geometries: Scatterplot
+
+ - creates a layer with isolated data points
+
+ - `geom_point()`
+
+ - numeric variables
+ 
+ - needs *x*, *y*
+
+ - optional *aes*: colour, fill, alpha, size, shape
+
+
+---
+# Geometries: Lines
+
+ - creates a layer with data points connected by segments
+
+ - `geom_line()`
+
+ - numeric variables
+ 
+ - needs *x* (usually time related),  *y*
+
+ - optional *aes*: colour, linetype, alpha, size
+
+
+
+---
+# Geometries: Histogram
+
+ - creates a frequency distribution using bins
+
+ - `geom_hist()`
+
+ - numeric variable
+ 
+ - needs *x*
+
+ - optional *aes*: colour, fill, linetype, alpha, size
+
+ - specific: *binwidth* the width of the bins, or *bins* the number of bins
+
+---
+# Geometries: Density
+
+ - creates a distribution using a smooth curve
+
+ - `geom_density()`
+
+ - numeric variable
+ 
+ - needs *x*
+
+ - optional *aes*: colour, fill, linetype, alpha, size
+
+ - usually overlays a histogram
+
+
+---
+# Geometries: Boxplot
+
+ - creates a layer with a *box-whisker* diagram
+
+ - `geom_boxplot()`
+
+ - numeric and categorical variable
+ 
+ - needs *x*
+
+ - optional *aes*: colour, fill, alpha, size
+
+
+---
+# Geometries: Violinplot
+
+ - creates a *box-whisker* diagram altered by the distribution shape
+
+ - `geom_violin()`
+
+ - numeric and categorical variable
+ 
+ - needs *x*
+
+ - optional *aes*: colour, fill, alpha, size
+
+
+---
+# Geometries: Smoother
+
+ - creates a line that summarizes the data as a whole rather than connecting individual points
+
+ - `geom_smooth()`
+
+ - numeric variables
+ 
+ - needs *x*, *y*
+
+ - optional *aes*: colour, fill, alpha, size, linetype
+
+
+---
+# Geometries: Straight Lines
+
+ - creates a layer with a user-defined horizontal or vertical line
+
+ - `geom_hline()`, `geom_vline()`
+
+ - numeric
+ 
+ - need resp. *yintercept* and  *xintercept*
+
+ - optional *aes*: colour, alpha, size, linetype
+
+
+---
+# Geometries: Text
+
+ - creates a layer with text located at a specific place
+
+ - `geom_text()`
+
+ - numeric
+ 
+ - needs *x* and *y* (coordinates where to place the text), *label* (the text)
+
+ - optional *aes*: colour, size, angle, alpha, hjust(horizontal adjustment), vjust (vertical adjustment)
+
+
+---
+# Geometries: Error Bars
+
+ - creates a layer with error bars representing some minimum and maximum
+
+ - `geom_errorbar()`
+
+ - numeric
+ 
+ - needs *x*, *ymin* (the lower value), *ymax* (the upper value)
+
+ - optional *aes*: colour, size, angle, alpha, hjust(horizontal adjustment), vjust (vertical adjustment)
+
+
+---
+# Labs
+
+ - `x` label for the horizontal axis
+
+ - `y` label for the vertical axis
+ 
+ - `title` centered by default (can be also with `ggtitle`)
+
+ - `subtitle` smaller text below the title
+
+ - `caption` in much smaller italic text at the bottom right, usually for credits and copyrights
+
+
+---
+# Faceting
+
+ - creates [small multiples](https://en.wikipedia.org/wiki/Small_multiple), separate but similar graphs for subset of data
+
+--
+
+ - `facet_wrap(~x)` a long series of plot subsetting on the levels of a single grouping variable `x`, distributed on *nrow* rows and *ncol* columns
+ 
+--
+
+ - `facet_grid(x~y)` a crosstabular viz subsetting on the levels of two variables `x` and `y`
+
+--
+
+ - can have same (*fixed*) or different scales (*free_x*, *free_y*)
+
+--
+
+ - can be applied to any geometry (but can be meaningless)
+ 
+
+---
+# Scales
+
+ `scale_*_*` 
+
+
+ - describes how visual characteristics are converted into display values
+
+--
+
+ - the first asterisk refers to the *aestethics*: colour, fill, and so on
+
+--
+
+ - the second asterisk refers to the *type*: discrete, continuous, manual, log, date, identity, ...
+
+--
+
+ - Extension packages can add their own scale and corrispondent options:
+   
+   - `scale_*_brewer`
+   
+   - `scale_*_viridis`
+
+---
+# Scales
+
+Common scale arguments:
+
+ - `name` the first argument, gives the title for the aesthetics
+
+ - `limits` describes the minimum and the maximum of the scale
+
+ - `breaks` the points along the scale where labels should appear
+
+ - `labels` the text that appears at each break
+
+
+
+
+
+
+---
+# Coordinates
+
+
+
+
+
+
+
+
+---
+# Themes
+
+ - It is possible to tinker lots of non-dat plot elements like:
+
+   - axis, axis ticks, axis labels
+ 
+   - plot background, 
+
+   - 
+ 
+   - facet label background
+ 
+   - legend appearance
+
+--
+
+ - Specific theme elements can be overriden using the `theme()` function
+
+--
+
+ - You can see the value set for each elements by any theme printing the theme itself
+
+---
+# Themes
+
+ - to change any element you first have to find the correct name *ggplot2* use for it
+
+--
+
+ - then understand how the element is drawn: 
+
+   - `element_rect()` for borders and backgrounds
+
+   - `element_line()` for lines
+
+   - `element_text()` for any text
+
+--
+
+ - the `element_blank()` instead draws nothing, and assigns no space
+
+--
+
+ - finally call the `theme()` function setting the new value
+ 
+---
+# Themes
+
+
+ - for example, to change the plot background in blue, add to the *ggplot2* call the following bit:
+ 
+  `theme(plot.background = element_rect(fill = 'blue'))`
+
+--
+
+ - you can create your own theme by simply adding incrementally the desired modifications to a basic built-in theme like `theme_bw()`
+
+---
+# Themes
+
+ - There are a few built-in themes that can be used instead of the fairly ugly `theme_gray()`, like  `theme_gray()`, `theme_gray()`, and `theme_gray()`
+
+--
+
+ - Many can be added with extensions, like: 
+  - [ggthemes](http://github.com/jrnold/ggthemes)
+  - [ggthemr](https://github.com/cttobin/ggthemr)
+  - [hrbrthemes](https://github.com/hrbrmstr/hrbrthemes)
+  - [ggconf](https://github.com/caprice-j/ggconf)
+  - [ggsci](https://github.com/road2stat/ggsci)
+
+
+
+
+
+
+
+
+---
+# Resources
+
+--
+
+ - [Cheat Sheet]()
+ 
+--
+
+ - [Reference]()
+ 
+--
+
+ - [RStudio Tutorials]()
+
+--
+
+ - [Datacamp Skill Track]()
+
+
+---
+# Thank You!
+
+ - [`r icon::fa("twitter")` @datamaps](https://twitter.com/datamaps)
+
+ - [`r icon::fa("github")` lvalnegri](https://github.com/lvalnegri)
+ 
+ - [`r icon::fa("linkedin")` Luca Valnegri](https://www.linkedin.com/in/lucavalnegri)
